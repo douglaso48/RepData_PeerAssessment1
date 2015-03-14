@@ -6,7 +6,8 @@ output: html_document
 ---
 Setting the global options for this document.  
 
-```{r global_options, include=TRUE}
+
+```r
 knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
                       echo=TRUE, warning=FALSE, message=FALSE)
 ```
@@ -20,7 +21,8 @@ or it can be sourced from R.D.Peng's Git hub account:<br/>
 http://github.com/rdpeng/RepData_PeerAssessment1.
 
 The file can be downloaded and unzipped using the following commands by removing the #'s:
-```{r}
+
+```r
 #library(downloader)
 #download("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip" , #dest="act.zip") 
 #unzip ("act.zip")
@@ -47,7 +49,8 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 ####Loading and pre-processing the data  
 The file can be read in using:
 
-```{r}
+
+```r
 a<-getwd()
 setwd(a)
 library(dplyr)
@@ -57,42 +60,83 @@ library(latticeExtra)
 library("miscTools")
 ```
 
-```{r}
+
+```r
 activity1 <- read.csv("activity.csv", stringsAsFactors=FALSE)
 View(activity1)
 summary(activity1)
+```
+
+```
+##      steps            date              interval     
+##  Min.   :  0.00   Length:17568       Min.   :   0.0  
+##  1st Qu.:  0.00   Class :character   1st Qu.: 588.8  
+##  Median :  0.00   Mode  :character   Median :1177.5  
+##  Mean   : 37.38                      Mean   :1177.5  
+##  3rd Qu.: 12.00                      3rd Qu.:1766.2  
+##  Max.   :806.00                      Max.   :2355.0  
+##  NA's   :2304
 ```
 We are taking the opportunity to load the required packages and viewing a snapshot of the data.  We will load chron later to avoid conflicts.  If you do not have any of these packages installed, you will need to do so to allow the .Rmd to run.  
 
 
 The date needs to be converted to Date format to allow correct handling.  
-```{r}
+
+```r
         activity1$date<- as.Date(activity1$date)
 ```
 
 For this part of the exercise we can ignore NA's.  To allow correct data manipulation the  NA's are removed.  
-```{r}
+
+```r
         activity<- filter(activity1, !is.na(activity1$steps))
 ```
 
 ####Questions  
 ####1.1 Calculate the total number of steps taken per day.  
 This code calculates the steps per day and the total number of steps taken.
-```{r}
+
+```r
         step_day<- activity %>% group_by (date)%>%
         summarise(steps = sum(steps))
         step_day
+```
+
+```
+## Source: local data frame [53 x 2]
+## 
+##          date steps
+## 1  2012-10-02   126
+## 2  2012-10-03 11352
+## 3  2012-10-04 12116
+## 4  2012-10-05 13294
+## 5  2012-10-06 15420
+## 6  2012-10-07 11015
+## 7  2012-10-09 12811
+## 8  2012-10-10  9900
+## 9  2012-10-11 10304
+## 10 2012-10-12 17382
+## ..        ...   ...
+```
+
+```r
         sum(step_day$steps)
+```
+
+```
+## [1] 570608
 ```
 <br>
 
 ####1.2. Make a histogram of the total number of steps taken each day
 The code to generate that is:
 
-```{r "plot1"}
 
+```r
         hist(step_day$steps,xlab="Steps", col="red",breaks=30, main="Total Steps")
-```   
+```
+
+![plot of chunk plot1](Figs/plot1-1.png) 
 
 I looked at various different breaks options and felt that 30 gave the best compromise to give a picture of the pattern of the data.  
 <br>
@@ -101,21 +145,32 @@ I looked at various different breaks options and felt that 30 gave the best comp
 ####1.3. Calculate and report the mean and median of the total number of steps per day.  
 
 #####Calculate the mean steps per day
-```{r}
+
+```r
         mean(step_day$steps)
-```       
+```
+
+```
+## [1] 10766.19
+```
        
 
 ######Calculate the median steps per day
-```{r}
+
+```r
         median(step_day$steps)
-```       
+```
+
+```
+## [1] 10765
+```
 <br>
 
 ####2. What is the daily activity pattern.  
 The values are split in to 5 minute intervals and the intervals are shown in HH:MM format with a class of character.  If the plot is constructed using the interval as the x axis this will result in a step at the hour interval, for example 50, 55, 100...150, 155, 200.  There are many ways to resolve this step in the data, I have chosen to add an index.  Coursera Discussion Forum is acknowledged as the source of the sequentialperiod code line.
 
-```{r}        
+
+```r
         x<- dcast(activity,...~date, value.var="steps")
         x$sequentialperiod <- seq(0, 1435, by=5) #(1)
         x<-melt(x,id=c("interval", "sequentialperiod")) 
@@ -123,25 +178,55 @@ The values are split in to 5 minute intervals and the intervals are shown in HH:
 ```
 
 #####Calculate the average daily activity pattern
-```{r}
+
+```r
         daily<- x %>% group_by (seqp, interval)%>%
         summarise(steps = mean(steps))
         daily
 ```
-<br>
 
-####2.1 Creating and writing a time series plot
-```{r "plot2"}
-plot(daily$seqp,daily$steps, xlab="5 Minute Intervals by Hour of Day", ylab="Average Steps", type="l",lwd=2, font.lab=2, font.axis=2, main="Daily Activity Pattern", xaxt="n")
-axis(1, c(180,360,540,720,900,1080,1260,1440), labels = c("3:00","6:00","9:00","12:00","15:00","18:00","21:00","24:00"))
-
+```
+## Source: local data frame [288 x 3]
+## Groups: seqp
+## 
+##    seqp interval     steps
+## 1     0        0 1.7169811
+## 2     5        5 0.3396226
+## 3    10       10 0.1320755
+## 4    15       15 0.1509434
+## 5    20       20 0.0754717
+## 6    25       25 2.0943396
+## 7    30       30 0.5283019
+## 8    35       35 0.8679245
+## 9    40       40 0.0000000
+## 10   45       45 1.4716981
+## ..  ...      ...       ...
 ```
 <br>
 
+####2.1 Creating and writing a time series plot
+
+```r
+plot(daily$seqp,daily$steps, xlab="5 Minute Intervals by Hour of Day", ylab="Average Steps", type="l",lwd=2, font.lab=2, font.axis=2, main="Daily Activity Pattern", xaxt="n")
+axis(1, c(180,360,540,720,900,1080,1260,1440), labels = c("3:00","6:00","9:00","12:00","15:00","18:00","21:00","24:00"))
+```
+
+![plot of chunk plot2](Figs/plot2-1.png) 
+<br>
+
 ####2.2 Identify the interval with the maximum number of steps
-```{r}        
+
+```r
         daily[which.max(daily$steps),]
-```  
+```
+
+```
+## Source: local data frame [1 x 3]
+## Groups: seqp
+## 
+##   seqp interval    steps
+## 1  515      835 206.1698
+```
 Therefore the time period with the maximum number of steps is 8:35 am.  
 <br>
 
@@ -149,17 +234,38 @@ Therefore the time period with the maximum number of steps is 8:35 am.
 ####3. Imputing missing values  
 
 ####3.1 Calculate & report the total number of NA's
-```{r}
+
+```r
         sum(is.na(activity1))
-```  
+```
+
+```
+## [1] 2304
+```
 This conforms with the summary output we saw at the pre-processing stage above.
 <br>
 
 ####3.2 Devise a strategy for filling the missing data  
 There are several different ways to replace missing data, some being very complex.  We are told that our strategy does not need to be sophisticated.  From investigations, it is probable that this problem is one of the less complex as it involve only one type of data and only the steps type.  It is not always a good idea to impute data as this may create an artificial bias.  On examination we see that there are 7 days where the data is completely absent.  
-```{r}
+
+```r
         q<- dcast(activity1,...~date, value.var="steps")
         q[1:5,2:9]
+```
+
+```
+##   2012-10-01 2012-10-02 2012-10-03 2012-10-04 2012-10-05 2012-10-06
+## 1         NA          0          0         47          0          0
+## 2         NA          0          0          0          0          0
+## 3         NA          0          0          0          0          0
+## 4         NA          0          0          0          0          0
+## 5         NA          0          0          0          0          0
+##   2012-10-07 2012-10-08
+## 1          0         NA
+## 2          0         NA
+## 3          0         NA
+## 4          0         NA
+## 5          0         NA
 ```
 <br>
 
@@ -180,7 +286,8 @@ I therefore chose to use the mean value.
 Recast the data by interval, calculate the mean for that interval and round the result.  Then replace the missing values and return the data to the 'long' format.  The reshaping has re-ordered the data so this is resorted back to the original format.
 
 ####Using the median
-```{r}
+
+```r
         q<- dcast(activity1,...~interval, value.var="steps")
         md<-round(colMedians(q[,-1], na.rm=TRUE), 0)
         q[is.na(q)] <- md
@@ -189,18 +296,43 @@ Recast the data by interval, calculate the mean for that interval and round the 
         s<-arrange(s, date,interval)
 ```
 Check to ensure that all NA's removed.
-```{r}
+
+```r
         sum(is.na(s))
-``` 
+```
+
+```
+## [1] 0
+```
 ####Summary of the new dataset
-```{r}
+
+```r
 summary(s)
+```
+
+```
+##       date               interval         steps    
+##  Min.   :2012-10-01   0      :   61   Min.   :  0  
+##  1st Qu.:2012-10-16   5      :   61   1st Qu.:  0  
+##  Median :2012-10-31   10     :   61   Median :  0  
+##  Mean   :2012-10-31   15     :   61   Mean   : 33  
+##  3rd Qu.:2012-11-15   20     :   61   3rd Qu.:  8  
+##  Max.   :2012-11-30   25     :   61   Max.   :806  
+##                       (Other):17202
+```
+
+```r
 length(s$date)
-```  
+```
+
+```
+## [1] 17568
+```
 
 ####Using the mean
 
-```{r}
+
+```r
         q<- dcast(activity1,...~interval, value.var="steps")
         mn<-round(colMeans(q[,-1], na.rm=TRUE), 0)
         q[is.na(q)] <- mn
@@ -209,47 +341,96 @@ length(s$date)
         t<-arrange(t, date,interval)
 ```
 Check to ensure that all NA's removed.
-```{r}
+
+```r
         sum(is.na(t))
-```  
+```
+
+```
+## [1] 0
+```
 <br>
 
 ####Compare the summary of the new dataset to original
 ####Original
-```{r}
+
+```r
 summary(activity1)
-```   
+```
+
+```
+##      steps             date               interval     
+##  Min.   :  0.00   Min.   :2012-10-01   Min.   :   0.0  
+##  1st Qu.:  0.00   1st Qu.:2012-10-16   1st Qu.: 588.8  
+##  Median :  0.00   Median :2012-10-31   Median :1177.5  
+##  Mean   : 37.38   Mean   :2012-10-31   Mean   :1177.5  
+##  3rd Qu.: 12.00   3rd Qu.:2012-11-15   3rd Qu.:1766.2  
+##  Max.   :806.00   Max.   :2012-11-30   Max.   :2355.0  
+##  NA's   :2304
+```
 
 ####New
 
-```{r}
+
+```r
 summary(t)
+```
+
+```
+##       date               interval         steps       
+##  Min.   :2012-10-01   0      :   61   Min.   :  0.00  
+##  1st Qu.:2012-10-16   5      :   61   1st Qu.:  0.00  
+##  Median :2012-10-31   10     :   61   Median :  0.00  
+##  Mean   :2012-10-31   15     :   61   Mean   : 37.38  
+##  3rd Qu.:2012-11-15   20     :   61   3rd Qu.: 27.00  
+##  Max.   :2012-11-30   25     :   61   Max.   :806.00  
+##                       (Other):17202
+```
+
+```r
 length(t$date)
-```    
+```
+
+```
+## [1] 17568
+```
 
 As can be seen the mean, median and max are unchanged and the number of observations are as originally reported, so no data has been dropped.
 
 <br>
 
 ####3.4 Make a histogram of total number of steps
-```{r "plot3"}
+
+```r
         complete1<- t %>% group_by (date)%>%
         summarise(steps = sum(steps))
 
 hist(complete1$steps,xlab="Steps", col="red",breaks=30, main="Total Steps")
 ```
 
+![plot of chunk plot3](Figs/plot3-1.png) 
+
 ####3.4.1 Calculate the mean and the median total steps per day    
 #####Calculate the mean steps per day
-```{r}
+
+```r
         mean(complete1$steps)
-```       
+```
+
+```
+## [1] 10765.64
+```
        
 
 ######Calculate the median steps per day
-```{r}
+
+```r
         median(complete1$steps)
-```       
+```
+
+```
+## [1] 10744
+```
 <br>
 The values have changed from the original.  
 
@@ -267,19 +448,23 @@ The main effect appears to have been that there are more observations around the
 ####4. Review of activity by weekday
 
 #####Import package chron to use the is.weekend function.  This package was not imported earlier to avoid system conflicts.  
-```{r}
+
+```r
 library(chron)
 ```
 #####Create a new dataset utilising the dataset with replaced NA's
-```{r}
+
+```r
 wday<-t
 ```
 ####4.1 Create new factor variable split by weekday & weekend
-```{r}
+
+```r
 wday$wend<- is.weekend(as.Date(wday$date))
 ```
 ######Helper function to convert names
-```{r}
+
+```r
         names<- function(original, changed, z, ...) {
                 for(i in 1:length(original))
                        z <- gsub(original[i], changed[i], z, ...)
@@ -287,13 +472,36 @@ wday$wend<- is.weekend(as.Date(wday$date))
         }
 ```
 #####Converting names to Weekend & Weekday
-```{r}
+
+```r
 d<- c(TRUE, FALSE)
 e<- c("Weekend", "Weekday")
 wday$wend<- names(d,e, wday$wend)
 str(wday)
+```
+
+```
+## 'data.frame':	17568 obs. of  4 variables:
+##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
+##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
+##  $ steps   : num  2 0 0 0 0 0 1 3 3 31 ...
+##  $ wend    : chr  "Weekday" "Weekday" "Weekday" "Weekday" ...
+```
+
+```r
 sum(wday$wend=="Weekend")
+```
+
+```
+## [1] 4608
+```
+
+```r
 sum(wday$wend=="Weekday")
+```
+
+```
+## [1] 12960
 ```
 
 <br/>
@@ -305,7 +513,8 @@ sum(wday$wend=="Weekday")
 #####Grouping and calculating mean values  
 
 Again inserting an index to allow graphing without the steps.
-```{r}
+
+```r
 days_steps<- wday%>% group_by (interval,wend)%>%
         summarise(steps = mean(steps))
 days_steps1<- subset(days_steps, wend=="Weekday")
@@ -316,7 +525,8 @@ days_steps2$seqp<- seq(0, 1435, by=5)
 
 ######Generating and writing graphs  
 
-```{r "plot4"}
+
+```r
 #setting the x axis scale
 xpos<-seq(from=0, by=360, to=1440)
 xtabs <- c("00:00","6:00","12:00","18:00","24:00")
@@ -329,8 +539,9 @@ update(c(xyplot(steps~seqp |wend, data=days_steps1,
                 xlab=list("Daily Interval", font=2), ylab=list("Average number of steps", font=2)), 
                 layout=c(1,2)), 
                 scales = list(x=list(at=xpos, labels=xtabs)))
+```
 
-```     
+![plot of chunk plot4](Figs/plot4-1.png) 
 
 <br/>
 There is a difference in the patterns of weekends and weekdays.  
@@ -341,11 +552,51 @@ During the week this person appears to rise about 5.45 and arrive at work shortl
 At weekends they rise later and have a lower peak activity.  Activity is spread across the day, rather than being peaked at certain times and there is a sustained period of activity during the afternoon.  The steps per interval are roughly in the range of 50-100, peaking at a little more than 150, so walking speeds of around .35 mph to .7mph with a peak of 1 mph.  So it is likely that they spend their weekends taking some light activity which would probably include shopping.  They tend to return home a little later but would seem to retire at about the same time.  I am somewhat sceptical of the blip from about 1am to 3am shown on both Weekdays and Weekends.  This is not present on the cleaned data and I suspect is noise induced by imputing the missing values.  
 
 
-```{r}
+
+```r
 summary(days_steps1)#Weekday
+```
+
+```
+##     interval       wend               steps                seqp       
+##  0      :  1   Length:288         Min.   :  0.02222   Min.   :   0.0  
+##  5      :  1   Class :character   1st Qu.:  9.40000   1st Qu.: 358.8  
+##  10     :  1   Mode  :character   Median : 26.46667   Median : 717.5  
+##  15     :  1                      Mean   : 35.52377   Mean   : 717.5  
+##  20     :  1                      3rd Qu.: 50.07222   3rd Qu.:1076.2  
+##  25     :  1                      Max.   :205.80000   Max.   :1435.0  
+##  (Other):282
+```
+
+```r
 sum((days_steps1$steps))
+```
+
+```
+## [1] 10230.84
+```
+
+```r
 summary(days_steps2)#Weekend
+```
+
+```
+##     interval       wend               steps              seqp       
+##  0      :  1   Length:288         Min.   :  0.000   Min.   :   0.0  
+##  5      :  1   Class :character   1st Qu.:  7.234   1st Qu.: 358.8  
+##  10     :  1   Mode  :character   Median : 31.969   Median : 717.5  
+##  15     :  1                      Mean   : 42.603   Mean   : 717.5  
+##  20     :  1                      3rd Qu.: 69.625   3rd Qu.:1076.2  
+##  25     :  1                      Max.   :153.125   Max.   :1435.0  
+##  (Other):282
+```
+
+```r
 sum((days_steps2$steps))
+```
+
+```
+## [1] 12269.75
 ```
 This shows that on average a greater level of activity at the weekend when they walk farther, a distance of 6.97 miles as opposed to 5.81 miles during the week, but, as we have seen, a lower peak value.
   

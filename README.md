@@ -1,3 +1,15 @@
+##Preamble
+I am taking the opportunity of amending the README to explain what is necessary to run the .Rmd file.  
+The activity.csv file must be in the same working working directory as PA1_template for the script to run.  The files can be downloaded and unzipped by removing the ## in the script.
+The script relies on certain packages to be loaded, if these are not already installed, please ensure that they are installed so the script can load them.  The required packages are:  
+dplyr  
+reshape2  
+lattice  
+latticeExtra   
+miscTools  
+chron  
+
+
 ## Introduction
 
 It is now possible to collect a large amount of data about personal
